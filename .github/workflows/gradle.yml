@@ -3,24 +3,32 @@ name: Build
 on: [push, workflow_dispatch]
 
 jobs:
-  buildJar:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out the repo
+      uses: actions/checkout@v4
+
     - name: Set up PATH
-      run: |
-        echo "${ANDROID_HOME}/build-tools/30.0.1" >> $GITHUB_PATH
-    - name: Set up JDK 20
+      run: echo $ANDROID_HOME/build-tools/34.0.0 >> $GITHUB_PATH
+
+    - name: Set up JDK
       uses: actions/setup-java@v4
       with:
-        java-version: 20
+        distribution: temurin
+        java-version: 17
+
     - name: Change permissions
-      run: chmod +x ./gradlew
-    - name: Build mod jar
-      run: ./gradlew deploy
+      run: chmod +x build.sh dependencies.sh
+
+    - name: Download dependencies
+      run: ./dependencies.sh dependencies-only
+
+    - name: Build the project
+      run: ./build.sh mobile
+
     - name: Upload built jar file
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ github.event.repository.name }}
-        path: build/libs/${{ github.event.repository.name }}.jar
+        name: Schema
+        path: build/Schema.jar
